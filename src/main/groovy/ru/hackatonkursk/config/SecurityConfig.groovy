@@ -1,7 +1,7 @@
 package ru.hackatonkursk.config
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.PropertySource
@@ -16,11 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
-import org.springframework.security.web.authentication.www.DigestAuthUtils
-import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint
-import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
-import org.springframework.security.web.authentication.www.NonceExpiredException
+import org.springframework.security.web.authentication.www.*
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.web.cors.CorsConfigurationSource
 import ru.hackatonkursk.auth.JwtAuthFilter
 import ru.hackatonkursk.auth.JwtService
 import ru.hackatonkursk.repo.UserRepository
@@ -40,14 +40,34 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value('${whiteListedAuthUrls}')
     private String[] whiteListedAuthUrls
-    @Value('${jwtTokenMatchUrls}')
-    private String[] jwtTokenMatchUrls
+    @Value('${jwtTokenMatchUrl}')
+    private String jwtTokenMatchUrl
+    @Value('${originUrl}')
+    private String originUrl
+    @Value('${headers}')
+    private String headers
+    @Value('${methods}')
+    private String methods
+    @Value('${exposedHeaders}')
+    private String exposedHeaders
+
+    @Autowired
+    JwtService jwtService
+    @Autowired
+    UserDetailsService userDetailsService
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+//        http
+//                .antMatcher("/**")
+//                .addFilterBefore(corsFilter(), SessionManagementFilter.class) //adds your custom CorsFilter
         http
                 .csrf()
                 .disable()
+        http
+                .cors()
+                .configurationSource(corsFilter())
+//                .disable()
         http
                 .logout()
                 .logoutUrl('/api/logout')
@@ -65,7 +85,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .requestCache()
 
         http
-//        .addFilterBefore(corsFilter(), SessionManagementFilter.class) //adds your custom CorsFilter
                 .authorizeRequests()
                 .antMatchers(whiteListedAuthUrls)
                 .permitAll()
@@ -75,31 +94,47 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .authenticated()
 //                .and()
 //                .httpBasic()
+        http
+                .antMatcher('/api/auth/login')
+                .authorizeRequests()
+                .and()
+                .addFilterAt(
+                        digestAuthenticationFilter(userDetailsService),
+                        BasicAuthenticationFilter.class)
+        http
+                .antMatcher(jwtTokenMatchUrl)
+                .authorizeRequests()
+                .and()
+                .addFilterBefore(
+                        new JwtAuthFilter(new AntPathRequestMatcher(jwtTokenMatchUrl), jwtService),
+                        AnonymousAuthenticationFilter.class)
     }
 
-    @Bean
-    FilterRegistrationBean<JwtAuthFilter> jwtFilter(
-            JwtService jwtService
-    ) {
-        FilterRegistrationBean<JwtAuthFilter> registrationBean = new FilterRegistrationBean<>()
+//    @Bean
+//    FilterRegistrationBean<JwtAuthFilter> jwtFilter(
+//            JwtService jwtService
+//    ) {
+//        FilterRegistrationBean<JwtAuthFilter> registrationBean = new FilterRegistrationBean<>()
+//
+//        registrationBean.setFilter(new JwtAuthFilter(jwtService))
+//        registrationBean.addUrlPatterns(jwtTokenMatchUrls)
+//        registrationBean.setOrder(-10)
+//
+//        return registrationBean
+//    }
 
-        registrationBean.setFilter(new JwtAuthFilter(jwtService))
-        registrationBean.addUrlPatterns(jwtTokenMatchUrls)
-
-        return registrationBean
-    }
-
-    @Bean
-    FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilterFilterRegistrationBean(
-            UserDetailsService userDetailsService
-    ) {
-        FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
-
-        registrationBean.setFilter(digestAuthenticationFilter(userDetailsService))
-        registrationBean.addUrlPatterns('/api/auth/login')
-
-        return registrationBean
-    }
+//    @Bean
+//    FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilterFilterRegistrationBean(
+//            UserDetailsService userDetailsService
+//    ) {
+//        FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
+//
+//        registrationBean.setFilter(digestAuthenticationFilter(userDetailsService))
+//        registrationBean.addUrlPatterns('/api/auth/login')
+//        registrationBean.setOrder(2)
+//
+//        return registrationBean
+//    }
 
     DigestAuthenticationFilter digestAuthenticationFilter(UserDetailsService userDetailsService) {
         DigestAuthenticationFilter digestAuthenticationFilter = new DigestAuthenticationFilter() {
@@ -152,7 +187,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpStatus.UNAUTHORIZED.getReasonPhrase())
             }
         }
-        digestAuthenticationEntryPoint.setKey('acegi')
+        digestAuthenticationEntryPoint.setKey('acegi123')
         digestAuthenticationEntryPoint.setRealmName('Contacts Realm via Digest Authentication')
         return digestAuthenticationEntryPoint
     }
@@ -169,13 +204,14 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         return { email -> users.findByEmail(email) }
     }
 
-//  private CorsFilter corsFilter() {
-//    return new CorsFilterAdapter(
-//        appProperties.getOriginUrl(),
-//        appProperties.getHeaders(),
-//        appProperties.getMethods())
-//        .corsFilter()
-//  }
+    private CorsConfigurationSource corsFilter() {
+        return new CorsFilterAdapter(
+                originUrl,
+                headers,
+                methods,
+                exposedHeaders
+        ).corsFilter(false)
+    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
