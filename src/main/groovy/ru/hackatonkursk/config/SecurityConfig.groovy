@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.authentication.www.DigestAuthUtils
 import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint
 import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
@@ -44,7 +45,24 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().disable()
+        http
+                .csrf()
+                .disable()
+        http
+                .logout()
+                .logoutUrl('/api/logout')
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
+        http
+                .exceptionHandling()
+        http
+                .sessionManagement()
+        http
+                .securityContext()
+
+        http
+//        .authorizeRequests()
+//        .antMatchers(jwtTokenMatchUrls)
+                .requestCache()
 
         http
 //        .addFilterBefore(corsFilter(), SessionManagementFilter.class) //adds your custom CorsFilter

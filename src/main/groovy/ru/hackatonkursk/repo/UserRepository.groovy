@@ -12,7 +12,7 @@ class UserRepository {
             new User('9999999999', 'password',
                     [new SimpleGrantedAuthority('ROLE_ADMIN'),
                      new SimpleGrantedAuthority('ROLE_GUEST')]),
-            new User('9234567891', '{noop}guestguest',
+            new User('9999999991', 'password',
                     [new SimpleGrantedAuthority('ROLE_GUEST')])
     ]
 

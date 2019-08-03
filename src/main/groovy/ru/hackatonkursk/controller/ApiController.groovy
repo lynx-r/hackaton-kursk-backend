@@ -19,7 +19,7 @@ class ApiController {
         this.jwtService = jwtService
     }
 
-    @GetMapping('/')
+    @GetMapping('')
     hello() {
         return 'hello'
     }
