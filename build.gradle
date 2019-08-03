@@ -26,6 +26,7 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-oauth2-core'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.codehaus.groovy:groovy'
+	implementation 'org.codehaus.groovy:groovy-json'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -9,10 +9,10 @@ import ru.hackatonkursk.domain.User
 class UserRepository {
 
     private USERS = [
-            new User('admin@mail.loc', '{noop}adminadmin',
+            new User('9999999999', 'password',
                     [new SimpleGrantedAuthority('ROLE_ADMIN'),
                      new SimpleGrantedAuthority('ROLE_GUEST')]),
-            new User('guest@mail.loc', '{noop}qwerty',
+            new User('9234567891', '{noop}guestguest',
                     [new SimpleGrantedAuthority('ROLE_GUEST')])
     ]
 
