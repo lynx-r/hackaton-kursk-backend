@@ -37,21 +37,23 @@ import javax.servlet.http.HttpServletResponse
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-//@Configuration
 @PropertySource(value = "classpath:/application.properties")
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private JwtService jwtService
+    private AuthSecurityConfig authSecurityConfig
 
     SecurityConfig(
-            JwtService jwtService
+            JwtService jwtService,
+            AuthSecurityConfig authSecurityConfig
     ) {
+        this.authSecurityConfig = authSecurityConfig
         this.jwtService = jwtService
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        def jwtUrlMatcher = new AntPathRequestMatcher(jwtTokenMatchUrl)
+        def jwtUrlMatcher = new AntPathRequestMatcher(authSecurityConfig.jwtTokenMatchUrl)
         def jwtAuthFilter = new JwtAuthFilter(jwtUrlMatcher, jwtService)
 
         http
@@ -66,12 +68,12 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .logout()
-                .logoutUrl('/api/logout')
+                .logoutUrl(authSecurityConfig.logoutUrl)
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
 
         http
                 .authorizeRequests()
-                .antMatchers(whiteListedAuthUrls)
+                .antMatchers(authSecurityConfig.whiteListedAuthUrls)
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -91,7 +93,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
 
         registrationBean.setFilter(digestAuthenticationFilter(userDetailsService))
-        registrationBean.addUrlPatterns('/api/auth/login')
+        registrationBean.addUrlPatterns(authSecurityConfig.loginUrl)
 
         return registrationBean
     }
@@ -147,8 +149,8 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpStatus.UNAUTHORIZED.getReasonPhrase())
             }
         }
-        digestAuthenticationEntryPoint.setKey('acegi123')
-        digestAuthenticationEntryPoint.setRealmName('Contacts Realm via Digest Authentication')
+        digestAuthenticationEntryPoint.setKey(authSecurityConfig.realmKey)
+        digestAuthenticationEntryPoint.setRealmName(authSecurityConfig.realmName)
         return digestAuthenticationEntryPoint
     }
 
@@ -160,10 +162,10 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private CorsConfigurationSource corsSource() {
         return new CorsConfigurationSourceAdapter(
-                originUrl,
-                headers,
-                methods,
-                exposedHeaders
+                authSecurityConfig.originUrl,
+                authSecurityConfig.headers,
+                authSecurityConfig.methods,
+                authSecurityConfig.exposedHeaders
         ).corsFilter(false)
     }
 

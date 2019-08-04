@@ -12,6 +12,12 @@ headers: Access-Control-Allow-Origin,Origin,Content-Type,Accept,Authorization,WW
 methods: GET,POST,OPTIONS
 exposedHeaders: WWW-Authenticate
 
+loginUrl: /api/auth/login
+logoutUrl: /api/logout
+
+realmKey: acgi1234
+realmName: Realm via Digest Authentication
+
 ---
 
 spring:

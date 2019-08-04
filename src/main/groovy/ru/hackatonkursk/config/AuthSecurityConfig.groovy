@@ -2,11 +2,9 @@ package ru.hackatonkursk.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
 
 @Configuration
-@PropertySource('classpath:authConfig.yml')
-class AuthModuleConfig {
+class AuthSecurityConfig {
 
     @Value('${tokenExpirationMinutes:60}')
     Integer tokenExpirationMinutes
@@ -30,5 +28,15 @@ class AuthModuleConfig {
     String methods
     @Value('${exposedHeaders}')
     String exposedHeaders
+
+    @Value('${loginUrl}')
+    String loginUrl
+    @Value('${logoutUrl}')
+    String logoutUrl
+
+    @Value('${realmKey}')
+    String realmKey
+    @Value('${realmName}')
+    String realmName
 
 }

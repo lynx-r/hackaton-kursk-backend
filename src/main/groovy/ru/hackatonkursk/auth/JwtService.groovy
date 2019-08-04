@@ -22,7 +22,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import ru.hackatonkursk.config.AuthModuleConfig
+import ru.hackatonkursk.config.AuthSecurityConfig
 
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -39,9 +39,9 @@ class JwtService {
     private static final JWSAlgorithm JWS_ALGORITHM = JWSAlgorithm.HS256
     private static final String SECRET_KEY_ALGORITHM = "HMAC"
     private final Logger logger = LoggerFactory.getLogger(JwtService.class)
-    private final AuthModuleConfig authModuleConfig
+    private final AuthSecurityConfig authModuleConfig
 
-    JwtService(AuthModuleConfig authModuleConfig) {
+    JwtService(AuthSecurityConfig authModuleConfig) {
         this.authModuleConfig = authModuleConfig
     }
 
