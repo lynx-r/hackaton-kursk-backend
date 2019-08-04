@@ -52,6 +52,7 @@ class JwtService {
         }
         return null
     }
+
     String getHttpAuthHeaderValue(Authentication authentication) {
         String token = getTokenFromAuthentication(authentication)
         return String.join(" ", "Bearer", token)
