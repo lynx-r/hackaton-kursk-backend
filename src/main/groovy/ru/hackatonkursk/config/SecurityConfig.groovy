@@ -1,10 +1,8 @@
 package ru.hackatonkursk.config
 
-
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import org.springframework.context.annotation.PropertySource
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -37,7 +35,6 @@ import javax.servlet.http.HttpServletResponse
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@PropertySource(value = "classpath:/application.properties")
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private JwtService jwtService

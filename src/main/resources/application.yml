@@ -2,12 +2,18 @@ spring:
   profiles:
     active: default
 
+server:
+  error:
+    include-stacktrace: never
+  port: ${PORT:8080}
+
+# common
+
 tokenExpirationMinutes: 600
 tokenIssuer: workingbit.com
-tokenSecret: S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV+
+tokenSecret: ${TOKEN_SECRET:S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV2}
 whiteListedAuthUrls: /api,/api/auth/login,/api/hello,/api/public**,/logout,/error
 jwtTokenMatchUrl: /api/metrics**
-originUrl: http://194.87.236.120
 headers: Access-Control-Allow-Origin,Origin,Content-Type,Accept,Authorization,WWW-Authenticate
 methods: GET,POST,OPTIONS
 exposedHeaders: WWW-Authenticate
@@ -15,13 +21,20 @@ exposedHeaders: WWW-Authenticate
 loginUrl: /api/auth/login
 logoutUrl: /api/logout
 
-realmKey: acgi1234
-realmName: Realm via Digest Authentication
+realmKey: ${REALM_KEY:abcd1234}
+realmName: ${REALM_NAME:Realm via Digest Authentication}
+
+# prod
+
+#originUrl: http://localhost:4200
+originUrl: http://194.87.236.120
 
 ---
 
 spring:
   profiles:
     dev
+
+# dev
 
 originUrl: http://localhost:4200

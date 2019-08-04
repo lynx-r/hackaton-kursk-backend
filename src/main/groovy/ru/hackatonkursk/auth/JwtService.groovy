@@ -79,7 +79,7 @@ class JwtService {
             signedJWT.sign(new MACSigner(key))
         } catch (JOSEException e) {
             logger.error("ERROR while signing JWT", e)
-            return null
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 'Unable to generate token')
         }
 
         return signedJWT.serialize()
