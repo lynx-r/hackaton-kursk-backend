@@ -4,13 +4,13 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
-class CorsFilterAdapter {
+class CorsConfigurationSourceAdapter {
     private final String clientUrl
     private final String[] headers
     private final String[] methods
     private final String[] exposedHeaders
 
-    CorsFilterAdapter(String clientUrl, String headers, String methods, String exposedHeaders) {
+    CorsConfigurationSourceAdapter(String clientUrl, String headers, String methods, String exposedHeaders) {
         this.clientUrl = clientUrl
         this.headers = headers.split(",")
         this.methods = methods.split(",")

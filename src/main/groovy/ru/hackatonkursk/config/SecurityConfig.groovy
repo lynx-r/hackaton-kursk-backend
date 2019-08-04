@@ -1,7 +1,6 @@
 package ru.hackatonkursk.config
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -42,46 +41,33 @@ import javax.servlet.http.HttpServletResponse
 @PropertySource(value = "classpath:/application.properties")
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value('${whiteListedAuthUrls}')
-    private String[] whiteListedAuthUrls
-    @Value('${jwtTokenMatchUrl}')
-    private String jwtTokenMatchUrl
-    @Value('${originUrl}')
-    private String originUrl
-    @Value('${headers}')
-    private String headers
-    @Value('${methods}')
-    private String methods
-    @Value('${exposedHeaders}')
-    private String exposedHeaders
+    private JwtService jwtService
 
-    @Autowired
-    JwtService jwtService
-    @Autowired
-    UserDetailsService userDetailsService
+    SecurityConfig(
+            JwtService jwtService
+    ) {
+        this.jwtService = jwtService
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http
-//                .antMatcher("/**")
-//                .addFilterBefore(corsFilter(), SessionManagementFilter.class) //adds your custom CorsFilter
+        def jwtUrlMatcher = new AntPathRequestMatcher(jwtTokenMatchUrl)
+        def jwtAuthFilter = new JwtAuthFilter(jwtUrlMatcher, jwtService)
+
         http
+                .exceptionHandling()
+                .and()
+                .sessionManagement()
+                .and()
+                .securityContext()
+                .and()
+                .requestCache()
+                .and()
                 .csrf()
                 .disable()
-//                .disable()
-        http
                 .logout()
                 .logoutUrl('/api/logout')
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
-        http
-                .exceptionHandling()
-        http
-                .sessionManagement()
-        http
-                .securityContext()
-
-        http
-                .requestCache()
 
         http
                 .authorizeRequests()
@@ -89,35 +75,14 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .anyRequest()
                 .authenticated()
-//        http
-//                .antMatcher('/api/auth/login')
-//                .addFilterBefore(
-//                        digestAuthenticationFilter(userDetailsService),
-//                        BasicAuthenticationFilter.class)
-        http
-                .antMatcher(jwtTokenMatchUrl)
-                .addFilterBefore(
-                        new JwtAuthFilter(new AntPathRequestMatcher(jwtTokenMatchUrl), jwtService),
-                        AnonymousAuthenticationFilter.class)
+                .and()
+                .addFilterBefore(jwtAuthFilter, AnonymousAuthenticationFilter.class)
 
         http
                 .antMatcher('/**')
                 .cors()
-                .configurationSource(corsFilter())
+                .configurationSource(corsSource())
     }
-
-//    @Bean
-//    FilterRegistrationBean<JwtAuthFilter> jwtFilter(
-//            JwtService jwtService
-//    ) {
-//        FilterRegistrationBean<JwtAuthFilter> registrationBean = new FilterRegistrationBean<>()
-//
-//        registrationBean.setFilter(new JwtAuthFilter(jwtService))
-//        registrationBean.addUrlPatterns(jwtTokenMatchUrls)
-//        registrationBean.setOrder(-10)
-//
-//        return registrationBean
-//    }
 
     @Bean
     FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilterFilterRegistrationBean(
@@ -187,20 +152,14 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         return digestAuthenticationEntryPoint
     }
 
-//    @Bean
-//    authFilter() {
-//        FilterRegistration<BasicAuthenticationFilter> filterRegistration = new FilterRegistrationBean<>()
-//        BasicAuthenticationFilter basicAuthenticationFilter = new BasicAuthenticationFilter()
-//    }
-
     @Bean
     @Primary
     UserDetailsService userDetailsRepository(UserRepository users) {
         return { email -> users.findByEmail(email) }
     }
 
-    private CorsConfigurationSource corsFilter() {
-        return new CorsFilterAdapter(
+    private CorsConfigurationSource corsSource() {
+        return new CorsConfigurationSourceAdapter(
                 originUrl,
                 headers,
                 methods,

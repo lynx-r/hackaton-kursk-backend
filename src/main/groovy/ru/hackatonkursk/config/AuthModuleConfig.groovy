@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
 
 @Configuration
-@PropertySource('classpath:moduleConfig.yml')
+@PropertySource('classpath:authConfig.yml')
 class AuthModuleConfig {
 
     @Value('${tokenExpirationMinutes:60}')
@@ -17,4 +17,18 @@ class AuthModuleConfig {
     @Value('${tokenSecret:secret}')
     // length minimum 256 bites
     String tokenSecret
+
+    @Value('${whiteListedAuthUrls}')
+    String[] whiteListedAuthUrls
+    @Value('${jwtTokenMatchUrl}')
+    String jwtTokenMatchUrl
+    @Value('${originUrl}')
+    String originUrl
+    @Value('${headers}')
+    String headers
+    @Value('${methods}')
+    String methods
+    @Value('${exposedHeaders}')
+    String exposedHeaders
+
 }

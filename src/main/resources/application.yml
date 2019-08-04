@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: default
+
+tokenExpirationMinutes: 600
+tokenIssuer: workingbit.com
+tokenSecret: S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV+
+whiteListedAuthUrls: /api,/api/auth/login,/api/hello,/api/public**,/logout,/error
+jwtTokenMatchUrl: /api/metrics**
+originUrl: http://194.87.236.120
+headers: Access-Control-Allow-Origin,Origin,Content-Type,Accept,Authorization,WWW-Authenticate
+methods: GET,POST,OPTIONS
+exposedHeaders: WWW-Authenticate
+
+---
+
+spring:
+  profiles:
+    dev
+
+originUrl: http://localhost:4200
