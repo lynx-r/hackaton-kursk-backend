@@ -33,9 +33,8 @@ class ApiController {
     @PreAuthorize('hasRole("ADMIN")')
     metrics(Authentication authentication) {
         println(authentication)
-        def inputFile = new File(getClass().getResource('/data/metrics.json').toURI())
-        def inputJSON = new JsonSlurper().parseText(inputFile.text)
-        return inputJSON
+        InputStream inputStream = getClass().getResourceAsStream('/data/metrics.json')
+        return new JsonSlurper().parse(inputStream)
     }
 
     @GetMapping('auth/login')
