@@ -1,5 +1,6 @@
 package ru.hackatonkursk.auth
 
+
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
 
@@ -15,15 +16,7 @@ class JwtAuthConverter implements Function<HttpServletRequest, Authentication> {
     }
 
     @Override
-    Authentication apply(HttpServletRequest serverWebExchange) {
-        def header = jwtService.getAuthorizationPayload(serverWebExchange)
-        if (jwtService.matchBearerLength(header)) {
-            def value = jwtService.getBearerValue(header)
-            if (!value.isEmpty()) {
-                def claim = jwtService.verifySignedJWT(value)
-                return jwtService.getUsernamePasswordAuthenticationToken(claim)
-            }
-        }
+    Authentication apply(HttpServletRequest req) {
         throw new BadCredentialsException()
     }
 }

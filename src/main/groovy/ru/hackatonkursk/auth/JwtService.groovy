@@ -14,7 +14,6 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -26,7 +25,6 @@ import ru.hackatonkursk.config.AuthSecurityConfig
 
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
-import javax.servlet.http.HttpServletRequest
 import java.text.ParseException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -45,6 +43,15 @@ class JwtService {
         this.authModuleConfig = authModuleConfig
     }
 
+    static String getTokenFromHeader(String authHeader) {
+        if (authHeader != null) {
+            def matchBearerLength = authHeader.length() > BEARER.length()
+            if (matchBearerLength) {
+                return authHeader.substring(BEARER.length())
+            }
+        }
+        return null
+    }
     String getHttpAuthHeaderValue(Authentication authentication) {
         String token = getTokenFromAuthentication(authentication)
         return String.join(" ", "Bearer", token)
@@ -78,19 +85,6 @@ class JwtService {
         return signedJWT.serialize()
     }
 
-    String getAuthorizationPayload(HttpServletRequest serverWebExchange) {
-        String token = serverWebExchange.getHeader(HttpHeaders.AUTHORIZATION)
-        return token == null ? "" : token
-    }
-
-    boolean matchBearerLength(authValue) {
-        return authValue.length() > BEARER.length()
-    }
-
-    String getBearerValue(authValue) {
-        return authValue.substring(BEARER.length())
-    }
-
     JWTClaimsSet verifySignedJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token)
@@ -114,7 +108,7 @@ class JwtService {
         }
     }
 
-    Authentication getUsernamePasswordAuthenticationToken(JWTClaimsSet claimsSet) {
+    static Authentication getUsernamePasswordAuthenticationToken(JWTClaimsSet claimsSet) {
         String subject = claimsSet.getSubject()
         String auths = (String) claimsSet.getClaim(AUTHORITIES_CLAIM)
         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(auths.split(","))

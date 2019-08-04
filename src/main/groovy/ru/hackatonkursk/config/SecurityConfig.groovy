@@ -116,7 +116,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
         digestAuthenticationFilter.setUserDetailsService(userDetailsService)
         digestAuthenticationFilter.setAuthenticationEntryPoint(digestAuthenticationEntryPoint())
-//        digestAuthenticationFilter.setPasswordAlreadyEncoded(true)
         return digestAuthenticationFilter
     }
 
