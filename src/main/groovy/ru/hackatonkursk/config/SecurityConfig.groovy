@@ -2,6 +2,7 @@ package ru.hackatonkursk.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.PropertySource
@@ -18,7 +19,10 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
-import org.springframework.security.web.authentication.www.*
+import org.springframework.security.web.authentication.www.DigestAuthUtils
+import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint
+import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
+import org.springframework.security.web.authentication.www.NonceExpiredException
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import ru.hackatonkursk.auth.JwtAuthFilter
@@ -64,9 +68,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .disable()
-        http
-                .cors()
-                .configurationSource(corsFilter())
 //                .disable()
         http
                 .logout()
@@ -80,8 +81,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .securityContext()
 
         http
-//        .authorizeRequests()
-//        .antMatchers(jwtTokenMatchUrls)
                 .requestCache()
 
         http
@@ -90,24 +89,21 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .anyRequest()
                 .authenticated()
-//                .antMatchers('/login')
-//                .authenticated()
-//                .and()
-//                .httpBasic()
-        http
-                .antMatcher('/api/auth/login')
-                .authorizeRequests()
-                .and()
-                .addFilterAt(
-                        digestAuthenticationFilter(userDetailsService),
-                        BasicAuthenticationFilter.class)
+//        http
+//                .antMatcher('/api/auth/login')
+//                .addFilterBefore(
+//                        digestAuthenticationFilter(userDetailsService),
+//                        BasicAuthenticationFilter.class)
         http
                 .antMatcher(jwtTokenMatchUrl)
-                .authorizeRequests()
-                .and()
                 .addFilterBefore(
                         new JwtAuthFilter(new AntPathRequestMatcher(jwtTokenMatchUrl), jwtService),
                         AnonymousAuthenticationFilter.class)
+
+        http
+                .antMatcher('/**')
+                .cors()
+                .configurationSource(corsFilter())
     }
 
 //    @Bean
@@ -123,18 +119,17 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        return registrationBean
 //    }
 
-//    @Bean
-//    FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilterFilterRegistrationBean(
-//            UserDetailsService userDetailsService
-//    ) {
-//        FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
-//
-//        registrationBean.setFilter(digestAuthenticationFilter(userDetailsService))
-//        registrationBean.addUrlPatterns('/api/auth/login')
-//        registrationBean.setOrder(2)
-//
-//        return registrationBean
-//    }
+    @Bean
+    FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilterFilterRegistrationBean(
+            UserDetailsService userDetailsService
+    ) {
+        FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
+
+        registrationBean.setFilter(digestAuthenticationFilter(userDetailsService))
+        registrationBean.addUrlPatterns('/api/auth/login')
+
+        return registrationBean
+    }
 
     DigestAuthenticationFilter digestAuthenticationFilter(UserDetailsService userDetailsService) {
         DigestAuthenticationFilter digestAuthenticationFilter = new DigestAuthenticationFilter() {
