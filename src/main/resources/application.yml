@@ -27,7 +27,7 @@ realmName: ${REALM_NAME:Realm via Digest Authentication}
 # prod
 
 #originUrl: http://localhost:4200
-originUrl: http://194.87.236.120
+originUrl: ${ORIGIN_URL:http://194.87.236.120}
 
 ---
 
