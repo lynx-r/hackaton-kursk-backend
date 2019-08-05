@@ -1,6 +1,5 @@
 package ru.hackatonkursk.controller
 
-import groovy.json.JsonSlurper
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,34 +9,16 @@ import ru.hackatonkursk.auth.JwtService
 import ru.hackatonkursk.domain.User
 
 @RestController()
-@RequestMapping('api')
-class ApiController {
+@RequestMapping('api/auth')
+class AuthController {
 
     private JwtService jwtService
 
-    ApiController(JwtService jwtService) {
+    AuthController(JwtService jwtService) {
         this.jwtService = jwtService
     }
 
-    @GetMapping('')
-    getGreeting() {
-        return [greeting: 'Welcome!']
-    }
-
-    @GetMapping('/public/test')
-    getPublicTest() {
-        return [message: 'Test public api']
-    }
-
-    @GetMapping('/metrics')
-    @PreAuthorize('hasRole("ADMIN")')
-    getMetrics(Authentication authentication) {
-        println(authentication)
-        InputStream inputStream = getClass().getResourceAsStream('/data/metrics.json')
-        return new JsonSlurper().parse(inputStream)
-    }
-
-    @GetMapping('auth/token')
+    @GetMapping('token')
     @PreAuthorize('hasAnyRole("GUEST", "ADMIN")')
     getToken(Authentication authentication) {
         def user = authentication.principal as User
@@ -45,7 +26,7 @@ class ApiController {
         return [token: token]
     }
 
-    @GetMapping('auth/authenticated')
+    @GetMapping('authenticated')
     @PreAuthorize('isAuthenticated()')
     isAuthenticated() {
         return [isLoggedIn: true]
