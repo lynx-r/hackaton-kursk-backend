@@ -45,4 +45,10 @@ class ApiController {
         return [token: token]
     }
 
+    @GetMapping('auth/authenticated')
+    @PreAuthorize('isAuthenticated()')
+    isAuthenticated() {
+        return [isLoggedIn: true]
+    }
+
 }
