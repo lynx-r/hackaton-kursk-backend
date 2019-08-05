@@ -21,7 +21,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import ru.hackatonkursk.config.AuthSecurityConfig
+import ru.hackatonkursk.config.SecurityProperties
 
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -37,9 +37,9 @@ class JwtService {
     private static final JWSAlgorithm JWS_ALGORITHM = JWSAlgorithm.HS256
     private static final String SECRET_KEY_ALGORITHM = "HMAC"
     private final Logger logger = LoggerFactory.getLogger(JwtService.class)
-    private final AuthSecurityConfig authModuleConfig
+    private final SecurityProperties authModuleConfig
 
-    JwtService(AuthSecurityConfig authModuleConfig) {
+    JwtService(SecurityProperties authModuleConfig) {
         this.authModuleConfig = authModuleConfig
     }
 
@@ -80,7 +80,7 @@ class JwtService {
             signedJWT.sign(new MACSigner(key))
         } catch (JOSEException e) {
             logger.error("ERROR while signing JWT", e)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 'Unable to generate token')
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 'Unable to generate token')
         }
 
         return signedJWT.serialize()
@@ -101,11 +101,11 @@ class JwtService {
                 return claimsSet
             } else {
                 logger.error("ERROR TOKEN invalid " + token)
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid token")
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token")
             }
         } catch (ParseException | JOSEException | BadJOSEException e) {
             logger.error("ERROR while verify JWT: " + token)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to verify token")
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "unable to verify token")
         }
     }
 

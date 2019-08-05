@@ -4,13 +4,11 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -21,15 +19,13 @@ import org.springframework.security.web.authentication.www.DigestAuthenticationE
 import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
 import org.springframework.security.web.authentication.www.NonceExpiredException
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import ru.hackatonkursk.auth.JwtAuthFilter
 import ru.hackatonkursk.auth.JwtService
 import ru.hackatonkursk.repo.UserRepository
 
-import javax.servlet.FilterChain
 import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -38,11 +34,11 @@ import javax.servlet.http.HttpServletResponse
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private JwtService jwtService
-    private AuthSecurityConfig authSecurityConfig
+    private SecurityProperties authSecurityConfig
 
     SecurityConfig(
             JwtService jwtService,
-            AuthSecurityConfig authSecurityConfig
+            SecurityProperties authSecurityConfig
     ) {
         this.authSecurityConfig = authSecurityConfig
         this.jwtService = jwtService
@@ -50,8 +46,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        def jwtUrlMatcher = new AntPathRequestMatcher(authSecurityConfig.jwtTokenMatchUrl)
-        def jwtAuthFilter = new JwtAuthFilter(jwtUrlMatcher, jwtService)
+        JwtAuthFilter jwtAuthFilter = getJwtAuthFilter()
 
         http
                 .exceptionHandling()
@@ -96,21 +91,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     DigestAuthenticationFilter digestAuthenticationFilter(UserDetailsService userDetailsService) {
-        DigestAuthenticationFilter digestAuthenticationFilter = new DigestAuthenticationFilter() {
-            @Override
-            void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-                HttpServletRequest request = (HttpServletRequest) req
-                HttpServletResponse response = (HttpServletResponse) res
-
-                String header = request.getHeader("Authorization")
-                if (header == null) {
-                    SecurityContextHolder.getContext().setAuthentication(null)
-                    getAuthenticationEntryPoint().commence(request, response, new BadCredentialsException('Invalid header'))
-                    return
-                }
-                super.doFilter(req, res, chain)
-            }
-        }
+        DigestAuthenticationFilter digestAuthenticationFilter = new DigestAuthenticationFilter()
         digestAuthenticationFilter.setUserDetailsService(userDetailsService)
         digestAuthenticationFilter.setAuthenticationEntryPoint(digestAuthenticationEntryPoint())
         return digestAuthenticationFilter
@@ -156,6 +137,11 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         return { email -> users.findByEmail(email) }
     }
 
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new NoOpPasswordEncoder()
+    }
+
     private CorsConfigurationSource corsSource() {
         return new CorsConfigurationSourceAdapter(
                 authSecurityConfig.originUrl,
@@ -165,8 +151,11 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         ).corsFilter(false)
     }
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new NoOpPasswordEncoder()
+    private JwtAuthFilter getJwtAuthFilter() {
+        def matchers = authSecurityConfig.jwtTokenMatchUrls.collect { new AntPathRequestMatcher(it) }
+        def orMatcher = new OrRequestMatcher(matchers)
+        def jwtAuthFilter = new JwtAuthFilter(orMatcher, jwtService)
+        jwtAuthFilter
     }
+
 }

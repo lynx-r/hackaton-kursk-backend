@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class AuthSecurityConfig {
+class SecurityProperties {
 
     @Value('${tokenExpirationMinutes:60}')
     Integer tokenExpirationMinutes
@@ -18,8 +18,8 @@ class AuthSecurityConfig {
 
     @Value('${whiteListedAuthUrls}')
     String[] whiteListedAuthUrls
-    @Value('${jwtTokenMatchUrl}')
-    String jwtTokenMatchUrl
+    @Value('${jwtTokenMatchUrls}')
+    String[] jwtTokenMatchUrls
     @Value('${originUrl}')
     String originUrl
     @Value('${headers}')

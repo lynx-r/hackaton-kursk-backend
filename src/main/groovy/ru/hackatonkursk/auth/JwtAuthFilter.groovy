@@ -4,7 +4,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
@@ -12,10 +12,10 @@ import javax.servlet.http.HttpServletRequest
 class JwtAuthFilter implements Filter {
 
     private final AuthenticationManager authManager = new JwtAuthManager()
-    private RequestMatcher requestMatcher
+    private OrRequestMatcher requestMatcher
     private JwtService jwtService
 
-    JwtAuthFilter(RequestMatcher requestMatcher, JwtService jwtService) {
+    JwtAuthFilter(OrRequestMatcher requestMatcher, JwtService jwtService) {
         this.jwtService = jwtService
         this.requestMatcher = requestMatcher
     }

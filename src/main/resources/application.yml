@@ -12,8 +12,8 @@ server:
 tokenExpirationMinutes: 600
 tokenIssuer: workingbit.com
 tokenSecret: ${TOKEN_SECRET:S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV2}
-whiteListedAuthUrls: /api,/api/auth/login,/api/hello,/api/public**,/logout,/error
-jwtTokenMatchUrl: /api/metrics**
+whiteListedAuthUrls: /api,/api/auth/login,/api/public**
+jwtTokenMatchUrls: /api/metrics**,/api/auth/authorized
 headers: Access-Control-Allow-Origin,Origin,Content-Type,Accept,Authorization,WWW-Authenticate
 methods: GET,POST,OPTIONS
 exposedHeaders: WWW-Authenticate
@@ -22,7 +22,7 @@ loginUrl: /api/auth/login
 logoutUrl: /api/logout
 
 realmKey: ${REALM_KEY:abcd1234}
-realmName: ${REALM_NAME:Realm via Digest Authentication}
+realmName: ${REALM_NAME:Welcome to an example of Digest authorization}
 
 # prod
 
