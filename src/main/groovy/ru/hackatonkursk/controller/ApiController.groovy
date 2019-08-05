@@ -20,26 +20,26 @@ class ApiController {
     }
 
     @GetMapping('')
-    hello() {
-        return 'hello'
+    getGreeting() {
+        return [greeting: 'Welcome!']
     }
 
     @GetMapping('/public/test')
-    publicTest() {
-        return 'public test'
+    getPublicTest() {
+        return [message: 'Test public api']
     }
 
     @GetMapping('/metrics')
     @PreAuthorize('hasRole("ADMIN")')
-    metrics(Authentication authentication) {
+    getMetrics(Authentication authentication) {
         println(authentication)
         InputStream inputStream = getClass().getResourceAsStream('/data/metrics.json')
         return new JsonSlurper().parse(inputStream)
     }
 
-    @GetMapping('auth/login')
+    @GetMapping('auth/token')
     @PreAuthorize('hasAnyRole("GUEST", "ADMIN")')
-    login(Authentication authentication) {
+    getToken(Authentication authentication) {
         def user = authentication.principal as User
         def token = jwtService.generateToken(user.username, user.authorities)
         return [token: token]

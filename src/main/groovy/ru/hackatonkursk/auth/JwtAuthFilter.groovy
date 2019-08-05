@@ -1,7 +1,6 @@
 package ru.hackatonkursk.auth
 
 import org.springframework.http.HttpHeaders
-import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.util.matcher.OrRequestMatcher
@@ -11,7 +10,6 @@ import javax.servlet.http.HttpServletRequest
 
 class JwtAuthFilter implements Filter {
 
-    private final AuthenticationManager authManager = new JwtAuthManager()
     private OrRequestMatcher requestMatcher
     private JwtService jwtService
 
@@ -29,7 +27,6 @@ class JwtAuthFilter implements Filter {
             if (!token.isEmpty()) {
                 def claim = jwtService.verifySignedJWT(token)
                 def authentication = JwtService.getUsernamePasswordAuthenticationToken(claim)
-                authentication = authManager.authenticate(authentication)
                 SecurityContextHolder.getContext().setAuthentication(authentication)
             } else {
                 throw new BadCredentialsException('Invalid token')

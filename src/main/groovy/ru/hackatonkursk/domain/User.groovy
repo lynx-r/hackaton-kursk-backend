@@ -9,9 +9,6 @@ class User implements UserDetails {
     String password
     List<GrantedAuthority> authorities
 
-    User() {
-    }
-
     User(String username, String password, List<GrantedAuthority> authorities) {
         this.username = username
         this.password = password

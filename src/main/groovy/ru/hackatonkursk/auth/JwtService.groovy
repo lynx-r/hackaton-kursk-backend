@@ -53,17 +53,6 @@ class JwtService {
         return null
     }
 
-    String getHttpAuthHeaderValue(Authentication authentication) {
-        String token = getTokenFromAuthentication(authentication)
-        return String.join(" ", "Bearer", token)
-    }
-
-    String getTokenFromAuthentication(Authentication authentication) {
-        return generateToken(
-                authentication.getName(),
-                authentication.getAuthorities())
-    }
-
     String generateToken(String subjectName, Collection<? extends GrantedAuthority> authorities) {
         Date expirationTime = Date.from(Instant.now().plus(authModuleConfig.getTokenExpirationMinutes(), ChronoUnit.MINUTES))
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
@@ -104,7 +93,7 @@ class JwtService {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token")
             }
         } catch (ParseException | JOSEException | BadJOSEException e) {
-            logger.error("ERROR while verify JWT: " + token)
+            logger.error("ERROR while verify JWT: " + token, e)
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "unable to verify token")
         }
     }
