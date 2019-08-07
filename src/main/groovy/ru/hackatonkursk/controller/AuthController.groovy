@@ -3,6 +3,7 @@ package ru.hackatonkursk.controller
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ru.hackatonkursk.auth.JwtService
@@ -18,7 +19,7 @@ class AuthController {
         this.jwtService = jwtService
     }
 
-    @GetMapping('token')
+    @PostMapping('token')
     @PreAuthorize('hasAnyRole("GUEST", "ADMIN")')
     getToken(Authentication authentication) {
         def user = authentication.principal as User
