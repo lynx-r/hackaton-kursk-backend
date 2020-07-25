@@ -1,6 +1,7 @@
 package ru.hackatonkursk.auth
 
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -8,8 +9,8 @@ import org.springframework.security.web.authentication.www.DigestAuthenticationE
 import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
 import org.springframework.security.web.authentication.www.NonceExpiredException
 import org.springframework.stereotype.Component
-import ru.hackatonkursk.config.SecurityProperties
 
+import javax.annotation.PostConstruct
 import javax.servlet.ServletException
 import javax.servlet.annotation.WebFilter
 import javax.servlet.http.HttpServletRequest
@@ -19,17 +20,24 @@ import javax.servlet.http.HttpServletResponse
 @WebFilter("/api/auth/token")
 class DigestAuthFilter extends DigestAuthenticationFilter {
 
-    DigestAuthFilter(UserDetailsService userDetailsService, SecurityProperties securityProperties) {
+    @Value('${realmKey}')
+    String realmKey
+    @Value('${realmName}')
+    String realmName
+
+    DigestAuthFilter(UserDetailsService userDetailsService) {
         setUserDetailsService(userDetailsService)
-        setAuthenticationEntryPoint(digestAuthenticationEntryPoint(securityProperties))
     }
 
-    private DigestAuthenticationEntryPoint digestAuthenticationEntryPoint(
-            SecurityProperties securityProperties
-    ) {
+    @PostConstruct
+    private void init() {
+        setAuthenticationEntryPoint(authenticationEntryPoint())
+    }
+
+    private DigestAuthenticationEntryPoint authenticationEntryPoint() {
         def entryPoint = digestAuthenticationEntryPoint()
-        entryPoint.setKey(securityProperties.realmKey)
-        entryPoint.setRealmName(securityProperties.realmName)
+        entryPoint.setKey(realmKey)
+        entryPoint.setRealmName(realmName)
         return entryPoint
     }
 

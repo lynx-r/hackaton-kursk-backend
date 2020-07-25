@@ -1,9 +1,8 @@
 plugins {
     id 'org.springframework.boot' version '2.3.1.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'groovy'
 }
-
-apply plugin: 'io.spring.dependency-management'
 
 group = 'ru.hackaton-kursk'
 version = '0.0.1-SNAPSHOT'
@@ -23,10 +22,14 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.security:spring-security-oauth2-core'
+//    implementation 'org.springframework.security:spring-security-oauth2-core'
     implementation 'org.springframework.security:spring-security-oauth2-jose'
     implementation 'org.codehaus.groovy:groovy'
     implementation 'org.codehaus.groovy:groovy-json'
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
 }

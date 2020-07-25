@@ -9,8 +9,9 @@ server:
 
 # common
 
-tokenExpirationMinutes: 600
-tokenIssuer: workingbit.com
+tokenExpirationMinutes: ${TOKEN_EXPIRATION_MINUTES:600}
+tokenIssuer: ${TOKEN_ISSUER:workingbit.com}
+# length minimum 256 bites
 tokenSecret: ${TOKEN_SECRET:S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV2}
 whiteListedAuthUrls: /api,/api/public**
 jwtTokenMatchUrls: /api/protected/metrics**,/api/auth/authenticated
@@ -38,7 +39,7 @@ spring:
 logging:
   level:
     ru.hackatonkursk: debug
-#    org.springframework: debug
+    org.springframework: debug
 
 # dev
 

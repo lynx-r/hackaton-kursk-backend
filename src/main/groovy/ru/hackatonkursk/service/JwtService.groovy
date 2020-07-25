@@ -14,6 +14,7 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -21,7 +22,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import ru.hackatonkursk.config.SecurityProperties
 
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -36,17 +36,19 @@ class JwtService {
     private static final JWSAlgorithm JWS_ALGORITHM = JWSAlgorithm.HS256
     private static final String SECRET_KEY_ALGORITHM = "HMAC"
     private final Logger logger = LoggerFactory.getLogger(JwtService.class)
-    private final SecurityProperties authModuleConfig
 
-    JwtService(SecurityProperties authModuleConfig) {
-        this.authModuleConfig = authModuleConfig
-    }
+    @Value('${tokenExpirationMinutes}')
+    Integer tokenExpirationMinutes
+    @Value('${tokenIssuer}')
+    String tokenIssuer
+    @Value('${tokenSecret}')
+    String tokenSecret
 
     String generateToken(String subjectName, Collection<? extends GrantedAuthority> authorities) {
-        Date expirationTime = Date.from(Instant.now().plus(authModuleConfig.getTokenExpirationMinutes(), ChronoUnit.MINUTES))
+        Date expirationTime = Date.from(Instant.now().plus(tokenExpirationMinutes, ChronoUnit.MINUTES))
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(subjectName)
-                .issuer(authModuleConfig.getTokenIssuer())
+                .issuer(tokenIssuer)
                 .expirationTime(expirationTime)
                 .claim(AUTHORITIES_CLAIM, authorities.join(','))
                 .build()
@@ -54,7 +56,7 @@ class JwtService {
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWS_ALGORITHM), claimsSet)
 
         try {
-            final SecretKey key = new SecretKeySpec(authModuleConfig.getTokenSecret().getBytes(), SECRET_KEY_ALGORITHM)
+            final SecretKey key = new SecretKeySpec(tokenSecret.getBytes(), SECRET_KEY_ALGORITHM)
             signedJWT.sign(new MACSigner(key))
         } catch (JOSEException e) {
             logger.error("ERROR while signing JWT", e)
@@ -67,12 +69,12 @@ class JwtService {
     JWTClaimsSet verifySignedJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token)
-            JWSVerifier verifier = new MACVerifier(authModuleConfig.getTokenSecret())
+            JWSVerifier verifier = new MACVerifier(tokenSecret)
             boolean valid = signedJWT.verify(verifier)
             if (valid) {
                 ConfigurableJWTProcessor<SimpleSecurityContext> jwtProcessor = new DefaultJWTProcessor<>()
                 jwtProcessor.setJWSKeySelector({ header, context ->
-                    final SecretKey key = new SecretKeySpec(authModuleConfig.getTokenSecret().getBytes(), SECRET_KEY_ALGORITHM)
+                    final SecretKey key = new SecretKeySpec(tokenSecret.getBytes(), SECRET_KEY_ALGORITHM)
                     return List.of(key)
                 })
                 JWTClaimsSet claimsSet = jwtProcessor.process(signedJWT, null)
