@@ -1,6 +1,7 @@
 package ru.hackatonkursk.config
 
-import org.springframework.boot.web.servlet.FilterRegistrationBean
+
+import org.springframework.boot.web.servlet.ServletComponentScan
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
@@ -11,18 +12,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
-import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint
-import org.springframework.security.web.authentication.www.DigestAuthenticationFilter
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-import org.springframework.security.web.util.matcher.OrRequestMatcher
+import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
-import ru.hackatonkursk.auth.JwtAuthFilter
-import ru.hackatonkursk.auth.JwtService
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import ru.hackatonkursk.service.JwtService
 import ru.hackatonkursk.repo.UserRepository
 
 @EnableWebSecurity
+@ServletComponentScan("ru.hackatonkursk.auth")
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -40,8 +38,13 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .cors()
+
+        http
                 .csrf()
                 .disable()
+
+        http
                 .logout()
                 .logoutUrl(authSecurityConfig.logoutUrl)
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
@@ -50,47 +53,11 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(authSecurityConfig.whiteListedAuthUrls)
                 .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .addFilterBefore(getJwtAuthFilter(), AnonymousAuthenticationFilter.class)
-
-        http
-                .antMatcher('/**')
-                .cors()
-                .configurationSource(corsSource())
-    }
-
-    @Bean
-    FilterRegistrationBean<DigestAuthenticationFilter> digestAuthenticationFilter(
-            UserDetailsService userDetailsService
-    ) {
-        FilterRegistrationBean<DigestAuthenticationFilter> registrationBean = new FilterRegistrationBean<>()
-
-        DigestAuthenticationFilter digestAuthenticationFilter = new DigestAuthenticationFilter()
-        digestAuthenticationFilter.setUserDetailsService(userDetailsService)
-        digestAuthenticationFilter.setAuthenticationEntryPoint(digestAuthenticationEntryPoint())
-
-        registrationBean.setFilter(digestAuthenticationFilter)
-        registrationBean.addUrlPatterns(authSecurityConfig.loginUrl)
-        return registrationBean
-    }
-
-    /**
-     * Returns entry point for digest authentication. It returns a header with X-Digest to prevent a browser popup
-     * @return
-     */
-    @Bean
-    DigestAuthenticationEntryPoint digestAuthenticationEntryPoint() {
-        def digestAuthenticationEntryPoint = new BrowserDigestAuthenticationEntryPoint()
-        digestAuthenticationEntryPoint.setKey(authSecurityConfig.realmKey)
-        digestAuthenticationEntryPoint.setRealmName(authSecurityConfig.realmName)
-        return digestAuthenticationEntryPoint
     }
 
     @Bean
     @Primary
-    UserDetailsService userDetailsRepository(UserRepository users) {
+    UserDetailsService userDetailsServiceRepo(UserRepository users) {
         return { email -> users.findByEmail(email) }
     }
 
@@ -99,20 +66,18 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new NoOpPasswordEncoder()
     }
 
-    private CorsConfigurationSource corsSource() {
-        return new CorsConfigurationSourceAdapter(
-                authSecurityConfig.originUrl,
-                authSecurityConfig.headers,
-                authSecurityConfig.methods,
-                authSecurityConfig.exposedHeaders
-        ).corsFilter(false)
-    }
-
-    private JwtAuthFilter getJwtAuthFilter() {
-        def matchers = authSecurityConfig.jwtTokenMatchUrls.collect { new AntPathRequestMatcher(it) }
-        def orMatcher = new OrRequestMatcher(matchers)
-        def jwtAuthFilter = new JwtAuthFilter(orMatcher, jwtService)
-        return jwtAuthFilter
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        println("????" + authSecurityConfig.originUrls + " " + authSecurityConfig.methods)
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList(authSecurityConfig.originUrls));
+        configuration.setAllowedMethods(Arrays.asList(authSecurityConfig.methods));
+        configuration.setAllowedHeaders(Arrays.asList(authSecurityConfig.headers));
+        configuration.setExposedHeaders(Arrays.asList(authSecurityConfig.headers));
+        def source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 }

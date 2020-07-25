@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import ru.hackatonkursk.auth.JwtService
+import ru.hackatonkursk.service.JwtService
 import ru.hackatonkursk.domain.User
 
 @RestController()

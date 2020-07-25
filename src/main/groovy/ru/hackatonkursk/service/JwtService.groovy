@@ -1,4 +1,4 @@
-package ru.hackatonkursk.auth
+package ru.hackatonkursk.service
 
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSAlgorithm
@@ -33,7 +33,6 @@ import java.time.temporal.ChronoUnit
 class JwtService {
     private static final String AUTHORITIES_CLAIM = "auths"
 
-    private static final String BEARER = "Bearer "
     private static final JWSAlgorithm JWS_ALGORITHM = JWSAlgorithm.HS256
     private static final String SECRET_KEY_ALGORITHM = "HMAC"
     private final Logger logger = LoggerFactory.getLogger(JwtService.class)
@@ -41,16 +40,6 @@ class JwtService {
 
     JwtService(SecurityProperties authModuleConfig) {
         this.authModuleConfig = authModuleConfig
-    }
-
-    static String getTokenFromHeader(String authHeader) {
-        if (authHeader != null) {
-            def matchBearerLength = authHeader.length() > BEARER.length()
-            if (matchBearerLength) {
-                return authHeader.substring(BEARER.length())
-            }
-        }
-        return null
     }
 
     String generateToken(String subjectName, Collection<? extends GrantedAuthority> authorities) {

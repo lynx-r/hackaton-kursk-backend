@@ -20,14 +20,14 @@ class SecurityProperties {
     String[] whiteListedAuthUrls
     @Value('${jwtTokenMatchUrls}')
     String[] jwtTokenMatchUrls
-    @Value('${originUrl}')
-    String originUrl
+    @Value('${originUrls}')
+    String[] originUrls
     @Value('${headers}')
     String headers
     @Value('${methods}')
     String methods
-    @Value('${exposedHeaders}')
-    String exposedHeaders
+//    @Value('${exposedHeaders}')
+//    String exposedHeaders
 
     @Value('${loginUrl}')
     String loginUrl

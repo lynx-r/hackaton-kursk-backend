@@ -12,11 +12,11 @@ server:
 tokenExpirationMinutes: 600
 tokenIssuer: workingbit.com
 tokenSecret: ${TOKEN_SECRET:S2{Ux(QSDpuF(qh_E{|T3W}w9{^rWd*tQf6()eV2}
-whiteListedAuthUrls: /api,/api/auth/token,/api/public**
+whiteListedAuthUrls: /api,/api/public**
 jwtTokenMatchUrls: /api/protected/metrics**,/api/auth/authenticated
-headers: Access-Control-Allow-Origin,Origin,Content-Type,Accept,Authorization,WWW-Authenticate
-methods: GET,POST,OPTIONS
-exposedHeaders: WWW-Authenticate
+headers: Access-Control-Allow-Origin,Access-Control-Allow-Credentials,X-Requested-With,Origin,Content-Type,Accept,Authorization,WWW-Authenticate
+methods: GET,POST,PATCH,PUT,DELETE
+#exposedHeaders: WWW-Authenticate
 
 loginUrl: /api/auth/token
 logoutUrl: /api/logout
@@ -35,6 +35,11 @@ spring:
   profiles:
     dev
 
+logging:
+  level:
+    ru.hackatonkursk: debug
+#    org.springframework: debug
+
 # dev
 
-originUrl: http://localhost:4200
+originUrls: http://localhost:4200,http://localhost:3000
