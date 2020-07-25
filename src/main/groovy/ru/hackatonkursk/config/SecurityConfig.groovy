@@ -40,6 +40,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .disable()
+                .httpBasic()
 
 //        http
 //                .logout()

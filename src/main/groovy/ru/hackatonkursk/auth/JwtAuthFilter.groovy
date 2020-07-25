@@ -4,20 +4,19 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ProviderManager
-import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.stereotype.Component
 import ru.hackatonkursk.service.JwtService
 
-import javax.servlet.*
+import javax.servlet.ServletException
 import javax.servlet.annotation.WebFilter
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -39,6 +38,7 @@ class JwtAuthFilter extends AbstractAuthenticationProcessingFilter {
         this.jwtService = jwtService
         this.userDetailsService = userDetailsService
         setAuthenticationManager(authenticationManager())
+        setAuthenticationSuccessHandler(authenticationSuccessHandler())
     }
 
     @Override
@@ -56,6 +56,16 @@ class JwtAuthFilter extends AbstractAuthenticationProcessingFilter {
     private static AuthenticationManager authenticationManager() {
         def daoAuthProvider = new DaoAuthenticationProvider()
         return new ProviderManager(daoAuthProvider)
+    }
+
+    private static AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new SimpleUrlAuthenticationSuccessHandler() {
+            @Override
+            void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                request.getRequestDispatcher(request.getRequestURI()).forward(request, response)
+                clearAuthenticationAttributes(request)
+            }
+        }
     }
 
     private static String getTokenFromHeader(String authHeader) {
