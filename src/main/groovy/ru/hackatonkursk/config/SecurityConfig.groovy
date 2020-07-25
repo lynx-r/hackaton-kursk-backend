@@ -28,9 +28,9 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value('${originUrls}')
     String[] originUrls
     @Value('${headers}')
-    String headers
+    String[] headers
     @Value('${methods}')
-    String methods
+    String[] methods
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -40,7 +40,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .disable()
-                .httpBasic()
 
 //        http
 //                .logout()
@@ -65,6 +64,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @Primary
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration()
         configuration.setAllowCredentials(true)

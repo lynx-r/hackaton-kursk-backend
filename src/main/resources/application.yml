@@ -39,7 +39,8 @@ spring:
 logging:
   level:
     ru.hackatonkursk: debug
-    org.springframework: debug
+    web: debug
+#    org.springframework: debug
 
 # dev
 
